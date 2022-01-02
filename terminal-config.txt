@@ -1,0 +1,330 @@
+export TERM="xterm-256color"
+export HISTFILE=~/.config/zsh/.zsh_history
+
+export EDITOR='nvim'
+export TERMINAL='gnome-terminal'
+export BROWSER='google-chrome'
+export MANPAGER='nvim +Man!'
+
+
+# Basic zsh settings
+PATH=$PATH:$HOME/.scripts #making my scripts run without typing the whole path
+bindkey -v # vi-mode
+autoload -Uz compinit && compinit #need the next two lines for case insensitive tab completion
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
+
+## Git Settings
+autoload -Uz vcs_info
+precmd_vcs_info() { vcs_info }
+precmd_functions+=( precmd_vcs_info )
+setopt prompt_subst
+RPROMPT=\$vcs_info_msg_0_
+zstyle ':vcs_info:git:*' formats '%F{yellow}(%b)%r%f'
+zstyle ':vcs_info:*' enable git
+
+HOMEBREW_FOLDER="/usr/local/share"
+source "$HOMEBREW_FOLDER/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source "$HOMEBREW_FOLDER/zsh-autosuggestions/zsh-autosuggestions.zsh"
+source "$HOMEBREW_FOLDER/zsh-history-substring-search/zsh-history-substring-search.zsh"
+
+autoload -Uz compinit;
+typeset -i updated_at=$(date +'%j' -r ~/.zcompdump 2>/dev/null || stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
+if [ $(date +'%j') != $updated_at ]; then
+  compinit -i
+else
+  compinit -C -i
+fi
+
+zmodload -i zsh/complist
+
+#History setup
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=100000
+SAVEHIST=$HISTSIZ
+
+setopt hist_ignore_all_dups # remove older duplicate entries from history
+setopt hist_reduce_blanks # remove superfluous blanks from history items
+setopt inc_append_history # save history entries as soon as they are entered
+setopt share_history # share history between different instances of the shell
+setopt auto_cd # cd by typing directory name if it's not a command
+setopt correct_all # autocorrect commands
+setopt auto_list # automatically list choices on ambiguous completion
+setopt auto_menu # automatically use menu completion
+setopt always_to_end # move cursor to end if word had one match
+
+zstyle ':completion:*' menu select # select completions with arrow keys
+zstyle ':completion:*' group-name '' # group results by category
+zstyle ':completion:::::' completer _expand _complete _ignored _approximate #enable approximate matches for completion
+
+#Plugins setup
+source <(antibody init)
+antibody bundle zdharma/fast-syntax-highlighting > ~/.zshrc.log
+antibody bundle zsh-users/zsh-autosuggestions > ~/.zshrc.log
+antibody bundle zsh-users/zsh-history-substring-search > ~/.zshrc.log
+antibody bundle zsh-users/zsh-completions > ~/.zshrc.log
+# antibody bundle robbyrussell/oh-my-zsh path:plugins/heroku > ~/.zshrc.log
+antibody bundle robbyrussell/oh-my-zsh path:plugins/node > ~/.zshrc.log
+antibody bundle robbyrussell/oh-my-zsh path:plugins/web-search > ~/.zshrc.log
+antibody bundle robbyrussell/oh-my-zsh path:plugins/sudo > ~/.zshrc.log
+antibody bundle robbyrussell/oh-my-zsh path:plugins/react-native > ~/.zshrc.log
+# antibody bundle robbyrussell/oh-my-zsh path:plugins/kubectl > ~/.zshrc.log
+# antibody bundle robbyrussell/oh-my-zsh path:plugins/npm > ~/.zshrc.log
+antibody bundle JamesKovacs/zsh_completions_mongodb > ~/.zshrc.log
+
+autoload -Uz compinit;compinit -i
+
+# Aliases
+
+#Helpful ShortCut 
+alias nv="nvim"
+alias ne="neofetch"
+alias up="sudo apt-get update"
+alias ug="sudo apt-get upgrade"
+alias na="uname -r"
+alias lg="lazygit"
+alias po="postman"
+alias sd="shutdown now"
+alias cs="shutdown -c"
+
+alias ls="colorls"
+alias config="vi $HOME/.zshrc"
+alias projects="cd $HOME/Spaces/Projects"
+alias reload="source $HOME/.zshrc"
+
+
+#Terminal 
+alias c="clear"
+alias x="exit"
+alias e="code -n ~/ ~/.zshrc ~/.aliases ~/.colors ~/.hooks"
+alias r="source ~/.zshrc"
+
+
+# Git
+alias gi="git init"
+alias gs="git status -sbu"
+alias gco="git checkout"
+alias gcob="git checkout -b"
+alias gp="git push"
+alias gm="git merge"
+alias ga="git add ."
+alias gcm="git commit -m"
+alias gpl="git pull"
+alias gst="git stash"
+alias gstl="git stash list"
+alias glg='git log --graph --oneline --decorate --all'
+
+#npm 
+alias rnm="rm -rf node_modules"
+alias rbn="rm -rf build node_modules"
+alias rap="rm -rf build coverage node_modules package-lock.json && npm i"
+
+alias npk="npx npkill" #clean unused nodemodules
+alias nkp="npx kill-port " # +portnumber
+alias nfk="npx fkill-cli" # +[<pid|name|:port> …] #kill processes
+
+alias nlg="npm list -g --depth 0" #list global packages installed
+
+alias ni="npm i"
+alias nis="npm i -S " # +package@version
+alias nise="npm i -S -E " # +package@version
+alias nid="npm i -D " # +package@version
+alias nide="npm i -D -E " # +package@version
+alias nr="npm r " # +package@version
+
+alias nrb="npm run build"
+alias nrbd="npm run build:dev"
+alias nrbq="npm run build:qa"
+alias nrs="npm run start"
+alias nrsd="npm run start:dev"
+alias nrsq="npm run start:qa"
+alias nrt="npm run test"
+alias nrtc="npm run test:c" #test with coverage
+
+alias np="npm run build && npm publish"
+alias nu="npm unpublish " # +package@version
+
+
+alias dc="dpkg --configure -a"
+alias pp="apt purge plymouth"
+alias rp="rm -rf /usr/share/plymouth"
+alias ip="apt install plymouth plymouth-themes" 
+
+cursor_mode() {
+    # See https://ttssh2.osdn.jp/manual/4/en/usage/tips/vim.html for cursor shapes
+    cursor_block='\e[2 q'
+    cursor_beam='\e[6 q'
+
+    function zle-keymap-select {
+        if [[ ${KEYMAP} == vicmd ]] ||
+            [[ $1 = 'block' ]]; then
+            echo -ne $cursor_block
+        elif [[ ${KEYMAP} == main ]] ||
+            [[ ${KEYMAP} == viins ]] ||
+            [[ ${KEYMAP} = '' ]] ||
+            [[ $1 = 'beam' ]]; then
+            echo -ne $cursor_beam
+        fi
+    }
+
+    zle-line-init() {
+        echo -ne $cursor_beam
+    }
+
+    zle -N zle-keymap-select
+    zle -N zle-line-init
+}
+
+cursor_mode
+
+git_prompt_status() {
+  local INDEX STATUS
+
+  INDEX=$(command git status --porcelain -b 2> /dev/null)
+
+  STATUS=""
+
+  if $(echo "$INDEX" | command grep -E '^\?\? ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_UNTRACKED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^A  ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_ADDED$STATUS"
+  elif $(echo "$INDEX" | grep '^M  ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_ADDED$STATUS"
+  elif $(echo "$INDEX" | grep '^MM ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_ADDED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^ M ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+  elif $(echo "$INDEX" | grep '^AM ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+  elif $(echo "$INDEX" | grep '^MM ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+  elif $(echo "$INDEX" | grep '^ T ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_MODIFIED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^R  ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_RENAMED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^ D ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_DELETED$STATUS"
+  elif $(echo "$INDEX" | grep '^D  ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_DELETED$STATUS"
+  elif $(echo "$INDEX" | grep '^AD ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_DELETED$STATUS"
+  fi
+
+  if $(command git rev-parse --verify refs/stash >/dev/null 2>&1); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_STASHED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^UU ' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_UNMERGED$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^## [^ ]\+ .*ahead' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_AHEAD$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^## [^ ]\+ .*behind' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_BEHIND$STATUS"
+  fi
+
+  if $(echo "$INDEX" | grep '^## [^ ]\+ .*diverged' &> /dev/null); then
+    STATUS="$ZSH_THEME_GIT_PROMPT_DIVERGED$STATUS"
+  fi
+
+  if [[ ! -z "$STATUS" ]]; then
+    echo " [ $STATUS]"
+  fi
+}
+
+
+prompt_git_branch() {
+    autoload -Uz vcs_info 
+    precmd_vcs_info() { vcs_info }
+    precmd_functions+=( precmd_vcs_info )
+    setopt prompt_subst
+    zstyle ':vcs_info:git:*' formats '%b'
+}
+
+prompt_git_info() {
+    [ ! -z "$vcs_info_msg_0_" ] && echo "$ZSH_THEME_GIT_PROMPT_PREFIX$vcs_info_msg_0_$ZSH_THEME_GIT_PROMPT_SUFFIX"
+}
+
+prompt_purity_precmd() {
+    # Pass a line before each prompt
+    print -P ''
+}
+
+prompt_purification_setup() {
+    # Display git branch
+
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd prompt_purity_precmd
+
+    ZSH_THEME_GIT_PROMPT_PREFIX=" %F{yellow}λ:%f%F{blue}"
+    ZSH_THEME_GIT_PROMPT_DIRTY=""
+    ZSH_THEME_GIT_PROMPT_CLEAN=""
+
+    ZSH_THEME_GIT_PROMPT_ADDED="%F{green}+%f "
+    ZSH_THEME_GIT_PROMPT_MODIFIED="%F{blue}%f "
+    ZSH_THEME_GIT_PROMPT_DELETED="%F{red}x%f "
+    ZSH_THEME_GIT_PROMPT_RENAMED="%F{magenta}➜%f "
+    ZSH_THEME_GIT_PROMPT_UNMERGED="%F{yellow}═%f "
+    ZSH_THEME_GIT_PROMPT_UNTRACKED="%F{white}%f "
+    ZSH_THEME_GIT_PROMPT_STASHED="%B%F{red}%f%b "
+    ZSH_THEME_GIT_PROMPT_BEHIND="%B%F{red}%f%b "
+    ZSH_THEME_GIT_PROMPT_AHEAD="%B%F{green}%f%b "
+
+    prompt_git_branch
+    RPROMPT='$(prompt_git_info) $(git_prompt_status)'
+    PROMPT=$'%F{white}%~ %B%F{blue}>%f%b '
+}
+
+prompt_purification_setup
+
+export PATH="/usr/local/opt/libpcap/bin:$PATH"
+
+fpath=(/usr/local/share/zsh-completions $fpath)
+export PATH="/usr/local/opt/icu4c/bin:$PATH"
+export PATH="/usr/local/opt/icu4c/sbin:$PATH"
+
+# Misc
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
+# Tab title
+precmd() {
+  # sets the tab title to current dir
+  echo -ne "\e]1;${PWD##*/}\a"
+}
+
+# Create a new react app
+
+react-app() {
+  npx create-react-app $1
+  cd $1
+  npm i -D eslint
+  npm i -D eslint-config-prettier eslint-plugin-prettier
+  npm i -D eslint-config-airbnb eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-react eslint-plugin-react-hooks
+  cp "${HOME}/.eslintrc.json" .
+  cp "${HOME}/.prettierrc" .
+  echo $1 > README.md
+  rm -rf yarn.lock
+  cd src
+  rm -f App.css App.test.js index.css logo.svg serviceWorker.js
+  mkdir components views 
+  git add -A
+  git commit -m "Initial commit."
+  cd ..
+  clear
+  code .
+}
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+_
